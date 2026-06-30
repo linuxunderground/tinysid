@@ -1,9 +1,9 @@
 # TinySID makefile
-DEFS = -Wall
-CFLAGS = $(DEFS) -O
-LDFLAGS =
 LIBS = -lpthread
+
+ifndef CC
 CC = gcc
+endif
 
 OBJECTS_A = tinysid.o sidengine.o soundcard.o
 
