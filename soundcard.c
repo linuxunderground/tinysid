@@ -3,6 +3,7 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "defines.h"
 
