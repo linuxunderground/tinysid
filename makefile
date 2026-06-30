@@ -17,7 +17,7 @@ sidengine.o: sidengine.c
 
 soundcard.o: soundcard.c
 		$(CC) -c $(CFLAGS) soundcard.c
-		
+
 clean:
 	echo Cleaning up...
 	rm *.o

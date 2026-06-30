@@ -6,7 +6,7 @@
 //
 // The c64-emulation and the synth-renderer was written by Tammo Hinrichs (kb)
 //
-// Combining of the emulation and the renderer as well as improvements and bugfixes 
+// Combining of the emulation and the renderer as well as improvements and bugfixes
 // by Rainer Sinsch (sinsch@stud.uni-frankfurt.de)
 //
 // spreading of the source code is FORBIDDEN!!!
@@ -41,19 +41,19 @@
 
 static inline int pfloat_ConvertFromInt(int i)
 {
-	return i<<16;
+    return i<<16;
 }
 static inline int pfloat_ConvertFromFloat(float f)
 {
-	return (int)(f*(1<<16));
+    return (int)(f*(1<<16));
 }
 static inline int pfloat_Multiply(int a, int b)
 {
-	return (a>>8)*(b>>8);
+    return (a>>8)*(b>>8);
 }
 static inline int pfloat_ConvertToInt(int i)
 {
-	return i>>16;
+    return i>>16;
 }
 
 // ------------------------------------------------------------- constants
@@ -117,11 +117,11 @@ int CSIDEmu::modes[256] = {
 
 CSIDEmu::CSIDEmu()
 {
-	// Initialize postprocessing filters
-	filterl1=0;
-	filterb1=0;
-	freq=0.9f;
-	filterrez=0.2f;
+    // Initialize postprocessing filters
+    filterl1=0;
+    filterb1=0;
+    freq=0.9f;
+    filterrez=0.2f;
 }
 
 CSIDEmu::~CSIDEmu()
@@ -129,16 +129,16 @@ CSIDEmu::~CSIDEmu()
 
 }
 
-#pragma warning(push)								// Inline Assembler Warnings unterdrücken
+#pragma warning(push)                                // Inline Assembler Warnings unterdrücken
 #pragma warning(disable:4035)
 inline byte CSIDEmu::get_bit(dword val, byte b)
 {
-	_asm {
-		mov eax, val
-		mov bl, b
-		bt eax, bl
-		setc al	
-	}
+    _asm {
+        mov eax, val
+        mov bl, b
+        bt eax, bl
+        setc al
+    }
 }
 #pragma warning(pop)
 
@@ -158,7 +158,7 @@ void CSIDEmu::synth_init(dword mixfrq)
   memset(&filter,0,sizeof(filter));
   osc[0].noiseval = 0xffffff;
   osc[1].noiseval = 0xffffff;
-  osc[2].noiseval = 0xffffff;  
+  osc[2].noiseval = 0xffffff;
 }
 
 // render a buffer of n samples with the actual register contents
@@ -166,9 +166,9 @@ void CSIDEmu::synth_render (word *buffer, dword len)
 {
   // step 1: convert the not easily processable sid registers into some
   //         more convenient and fast values (makes the thing much faster
-  //         if you process more than 1 sample value at once)      
+  //         if you process more than 1 sample value at once)
   for (byte v=0;v<3;v++) {
-    osc[v].pulse   = (sid.v[v].pulse & 0xfff) << 16;		
+    osc[v].pulse   = (sid.v[v].pulse & 0xfff) << 16;
     osc[v].filter  = get_bit(sid.res_ftv,v);
     osc[v].attack  = attacks[sid.v[v].ad >> 4];
     osc[v].decay   = releases[sid.v[v].ad & 0xf];
@@ -178,10 +178,10 @@ void CSIDEmu::synth_render (word *buffer, dword len)
     osc[v].freq    = ((dword)sid.v[v].freq)*freqmul;
   }
 
-  //filter.freq  = (16* sid.ffreqhi + (sid.ffreqlo&0x7))*filtmul;  
-  filter.freq = (16* sid.ffreqhi + (sid.ffreqlo&0x7))*filtmul;  
-  
-  
+  //filter.freq  = (16* sid.ffreqhi + (sid.ffreqlo&0x7))*filtmul;
+  filter.freq = (16* sid.ffreqhi + (sid.ffreqlo&0x7))*filtmul;
+
+
   if (filter.freq>pfloat_ConvertFromInt(1))
     filter.freq=pfloat_ConvertFromInt(1);
   // the above line isnt correct at all - the problem is that the filter
@@ -192,12 +192,12 @@ void CSIDEmu::synth_render (word *buffer, dword len)
   filter.b_ena = get_bit(sid.ftp_vol,5);
   filter.h_ena = get_bit(sid.ftp_vol,6);
   filter.v3ena = !get_bit(sid.ftp_vol,7);
-  filter.vol   = (sid.ftp_vol & 0xf)*16;  
+  filter.vol   = (sid.ftp_vol & 0xf)*16;
   //filter.rez   = 1.2f-0.04f*(sid.res_ftv >> 4);
-  filter.rez   = pfloat_ConvertFromFloat(1.2f) - 
-					pfloat_ConvertFromFloat(0.04f)*(sid.res_ftv >> 4);
-  
-  
+  filter.rez   = pfloat_ConvertFromFloat(1.2f) -
+                    pfloat_ConvertFromFloat(0.04f)*(sid.res_ftv >> 4);
+
+
   // now render the buffer
   for (dword bp=0;bp<len;bp++) {
     int outo=0;
@@ -263,7 +263,7 @@ void CSIDEmu::synth_render (word *buffer, dword len)
       // the gate bit and put the EG into attack or release phase if desired
       if (!(osc[v].wave & 0x01)) osc[v].envphase=3;
       else if (osc[v].envphase==3) osc[v].envphase=0;
-      // so now process the volume according to the phase and adsr values	  
+      // so now process the volume according to the phase and adsr values
       switch (osc[v].envphase) {
         case 0 : {                          // Phase 0 : Attack
                    osc[v].envval+=osc[v].attack;
@@ -304,17 +304,17 @@ void CSIDEmu::synth_render (word *buffer, dword len)
                  }
       }
       // now route the voice output to either the non-filtered or the
-      // filtered channel and dont forget to blank out osc3 if desired	  
-	  //printf("%20f\n", (float)osc[v].envval*((float)outv-(float)0x80)/(float)0xFFFF);
+      // filtered channel and dont forget to blank out osc3 if desired
+      //printf("%20f\n", (float)osc[v].envval*((float)outv-(float)0x80)/(float)0xFFFF);
       if (v<2 || filter.v3ena)
         if (osc[v].filter)
-		  //outf+=osc[v].envval*((signed short)(outv-0x80))/0x3FFFFFF;		  		  
-		  outf+=(((int)(outv-0x80))*osc[v].envval)>>26;
-		
+          //outf+=osc[v].envval*((signed short)(outv-0x80))/0x3FFFFFF;
+          outf+=(((int)(outv-0x80))*osc[v].envval)>>26;
+
         else
-		  //outo+=osc[v].envval*((signed short)(outv-0x80))/0x3FFFFFF;		  
-		  outo+=(((int)(outv-0x80))*osc[v].envval)>>26;
-    }		
+          //outo+=osc[v].envval*((signed short)(outv-0x80))/0x3FFFFFF;
+          outo+=(((int)(outv-0x80))*osc[v].envval)>>26;
+    }
     // step 3
     // so, now theres finally time to apply the multi-mode resonant filter
     // to the signal. The easiest thing ist just modelling a real electronic
@@ -326,31 +326,31 @@ void CSIDEmu::synth_render (word *buffer, dword len)
     // emulator.
     // This filter sounds a lot like the 8580, as the low-quality, dirty
     // sound of the 6581 is uuh too hard to achieve :)
-	    
-	//filter.h = outf - filter.b*filter.rez - filter.l;	  
-	filter.h = pfloat_ConvertFromInt(outf) - pfloat_Multiply(filter.b, filter.rez) - filter.l;
-	//filter.b += filter.freq * filter.h;
-	filter.b += pfloat_Multiply(filter.freq, filter.h);
-	//filter.l += filter.freq * filter.b;
-	filter.l += pfloat_Multiply(filter.freq, filter.b);
+
+    //filter.h = outf - filter.b*filter.rez - filter.l;
+    filter.h = pfloat_ConvertFromInt(outf) - pfloat_Multiply(filter.b, filter.rez) - filter.l;
+    //filter.b += filter.freq * filter.h;
+    filter.b += pfloat_Multiply(filter.freq, filter.h);
+    //filter.l += filter.freq * filter.b;
+    filter.l += pfloat_Multiply(filter.freq, filter.b);
 
     outf = 0;
 
-	//if (filter.l_ena) outf+=filter.l;
-	//if (filter.b_ena) outf+=filter.b;
-	//if (filter.h_ena) outf+=filter.h;
-	
+    //if (filter.l_ena) outf+=filter.l;
+    //if (filter.b_ena) outf+=filter.b;
+    //if (filter.h_ena) outf+=filter.h;
+
     if (filter.l_ena) outf+=pfloat_ConvertToInt(filter.l);
     if (filter.b_ena) outf+=pfloat_ConvertToInt(filter.b);
     if (filter.h_ena) outf+=pfloat_ConvertToInt(filter.h);
-	    	
-	int final_sample = (filter.vol*(outo+outf));
-		
-	//filterl1 = filterl1 + freq * filterb1;
+
+    int final_sample = (filter.vol*(outo+outf));
+
+    //filterl1 = filterl1 + freq * filterb1;
     //filterb1 = filterrez*filterb1 - freq * ( filterl1 + final_sample);
-	//*(buffer+bp)=(signed short) filterl1;
-	*(buffer+bp)=final_sample;
-	
+    //*(buffer+bp)=(signed short) filterl1;
+    *(buffer+bp)=final_sample;
+
   }
 }
 
@@ -360,58 +360,58 @@ void CSIDEmu::synth_render (word *buffer, dword len)
 // C64 Mem Routinen
 //
 inline byte CSIDEmu::getmem(word addr)
-{    
+{
   return memory[addr];
 }
 
 void CSIDEmu::setmem(word addr, byte value)
 {
-	memory[addr]=value;
+    memory[addr]=value;
 
-	// Alte SID-routinen
-	if ((addr&0xfc00)==0xd400)
-	{        
-		addr&=0x1f;		
-		sidPoke(addr,value);
-	}
+    // Alte SID-routinen
+    if ((addr&0xfc00)==0xd400)
+    {
+        addr&=0x1f;
+        sidPoke(addr,value);
+    }
 }
 
 void CSIDEmu::sidPoke(int reg, unsigned char val)
-{  		
-	int voice;
+{
+    int voice;
 
-	if ((reg >= 0) && (reg <= 6)) voice=0;
-	if ((reg >= 7) && (reg <=13)) {voice=1; reg-=7;}
-	if ((reg >= 14) && (reg <=20)) {voice=2; reg-=14;}
+    if ((reg >= 0) && (reg <= 6)) voice=0;
+    if ((reg >= 7) && (reg <=13)) {voice=1; reg-=7;}
+    if ((reg >= 14) && (reg <=20)) {voice=2; reg-=14;}
 
-	switch (reg) {
-		case 0: { // Frequenz niederwertiges byte Stimme 1
-				  sid.v[voice].freq = (sid.v[voice].freq&0xff00)+val;
-				  //printf("Voice%d: %d\n", voice, sid.v[voice].freq);
-				  break;
-				}
-		case 1: { // Frequenz höherwertiges byte Stimme 1
-				  sid.v[voice].freq = (sid.v[voice].freq&0xff)+(val<<8);
-				  break;
-				}
-		case 2: { // Pulsbreite niederwertiges byte Stimme 1
-				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff00)+val;
-				  break;
-				}
-		case 3: { // Pulsbreite höherwertiges byte Stimme 1
-				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff)+(val<<8);
-				  break;
-				}
-		case 4: { sid.v[voice].wave = val; break;}
+    switch (reg) {
+        case 0: { // Frequenz niederwertiges byte Stimme 1
+                  sid.v[voice].freq = (sid.v[voice].freq&0xff00)+val;
+                  //printf("Voice%d: %d\n", voice, sid.v[voice].freq);
+                  break;
+                }
+        case 1: { // Frequenz höherwertiges byte Stimme 1
+                  sid.v[voice].freq = (sid.v[voice].freq&0xff)+(val<<8);
+                  break;
+                }
+        case 2: { // Pulsbreite niederwertiges byte Stimme 1
+                  sid.v[voice].pulse = (sid.v[voice].pulse&0xff00)+val;
+                  break;
+                }
+        case 3: { // Pulsbreite höherwertiges byte Stimme 1
+                  sid.v[voice].pulse = (sid.v[voice].pulse&0xff)+(val<<8);
+                  break;
+                }
+        case 4: { sid.v[voice].wave = val; break;}
 
-		case 5: { sid.v[voice].ad = val; break;}
-		case 6: { sid.v[voice].sr = val; break;}
+        case 5: { sid.v[voice].ad = val; break;}
+        case 6: { sid.v[voice].sr = val; break;}
 
-		case 21: { sid.ffreqlo = val; break; }
-		case 22: { sid.ffreqhi = val; break; }
-		case 23: { sid.res_ftv = val; break; }
-		case 24: { sid.ftp_vol = val; break;}
-	}
+        case 21: { sid.ffreqlo = val; break; }
+        case 22: { sid.ffreqhi = val; break; }
+        case 23: { sid.res_ftv = val; break; }
+        case 24: { sid.ftp_vol = val; break;}
+    }
   return;
 }
 void CSIDEmu::sidReset(void)
@@ -420,7 +420,7 @@ void CSIDEmu::sidReset(void)
 
 byte CSIDEmu::getaddr(int mode)
 {
-  word ad,ad2;  
+  word ad,ad2;
   switch(mode)
   {
     case imp:
@@ -430,16 +430,16 @@ byte CSIDEmu::getaddr(int mode)
       cycles+=2;
       return getmem(pc++);
     case abs:
-      cycles+=4;      
-	  ad = *(word *) &memory[pc];
-	  pc+=2;
-	  
-	  return getmem(ad);	  	  
+      cycles+=4;
+      ad = *(word *) &memory[pc];
+      pc+=2;
+
+      return getmem(ad);
     case absx:
       cycles+=4;
       ad=getmem(pc++);
       ad|=256*getmem(pc++);
-	  
+
       ad2=ad+x;
       if ((ad2&0xff00)!=(ad&0xff00))
         cycles++;
@@ -486,7 +486,7 @@ byte CSIDEmu::getaddr(int mode)
     case acc:
       cycles+=2;
       return a;
-  }  
+  }
   return 0;
 }
 
@@ -499,7 +499,7 @@ void CSIDEmu::setaddr(int mode, byte val)
       cycles+=2;
       ad=getmem(pc-2);
       ad|=256*getmem(pc-1);
-	  setmem(ad,val);
+      setmem(ad,val);
       return;
     case absx:
       cycles+=3;
@@ -519,11 +519,11 @@ void CSIDEmu::setaddr(int mode, byte val)
       cycles+=2;
       ad=getmem(pc-1);
       ad+=x;
-      setmem(ad&0xff,val);	  
+      setmem(ad&0xff,val);
       return;
     case acc:
       a=val;
-      return;	
+      return;
   }
 }
 
@@ -579,15 +579,15 @@ void CSIDEmu::putaddr(int mode, byte val)
       ad2=getmem(ad&0xff);
       ad++;
       ad2|=getmem(ad&0xff)<<8;
-      setmem(ad2,val);	  
+      setmem(ad2,val);
       return;
-    case indy:      
-	  cycles+=5;
+    case indy:
+      cycles+=5;
       ad=getmem(pc++);
       ad2=getmem(ad);
       ad2|=getmem((ad+1)&0xff)<<8;
       ad=ad2+y;
-      setmem(ad,val);	  
+      setmem(ad,val);
       return;
     case acc:
       cycles+=2;
@@ -631,8 +631,8 @@ void CSIDEmu::cpuReset()
 {
   a=x=y=0;
   p=0;
-  s=255; 
-  pc=getaddr(0xfffc);  
+  s=255;
+  pc=getaddr(0xfffc);
 }
 
 void CSIDEmu::cpuResetTo(word npc, byte na/*=0*/, byte nx/*=0*/, byte ny/*=0*/)
@@ -642,28 +642,28 @@ void CSIDEmu::cpuResetTo(word npc, byte na/*=0*/, byte nx/*=0*/, byte ny/*=0*/)
   y=ny;
   p=0;
   s=255;
-  pc=npc; 
+  pc=npc;
 }
 
 int CSIDEmu::cpuParse()
 {
   cycles=0;
-  
+
   byte opc=getmem(pc++);
   int cmd=opcodes[opc];
   int addr=modes[opc];
-  int c;  
+  int c;
   switch (cmd)
   {
     case adc:
-      		
-	  wval=(word)a+getaddr(addr)+((p&FLAG_C)?1:0);	  
+
+      wval=(word)a+getaddr(addr)+((p&FLAG_C)?1:0);
       setflags(FLAG_C, wval&0x100);
       a=(byte)wval;
       setflags(FLAG_Z, !a);
       setflags(FLAG_N, a&0x80);
       setflags(FLAG_V, (!!(p&FLAG_C)) ^ (!!(p&FLAG_N)));
-	  
+
       break;
     case and:
       bval=getaddr(addr);
@@ -709,11 +709,11 @@ int CSIDEmu::cpuParse()
       setflags(FLAG_N,bval&0x80);
       setflags(FLAG_V,bval&0x40);
       break;
-    case brk:			  
-	  	
-	  // Aufruf komplett beenden
-	  pc=0;	  
-      cycles+=7;	  	  	  	
+    case brk:
+
+      // Aufruf komplett beenden
+      pc=0;
+      cycles+=7;
       break;
     case clc:
       cycles+=2;
@@ -742,20 +742,20 @@ int CSIDEmu::cpuParse()
       bval=getaddr(addr);
       wval=(word)x-bval;
       setflags(FLAG_Z,!wval);
-      setflags(FLAG_N,wval&0x80);      
-	  setflags(FLAG_C,x>=bval);
+      setflags(FLAG_N,wval&0x80);
+      setflags(FLAG_C,x>=bval);
       break;
     case cpy:
       bval=getaddr(addr);
       wval=(word)y-bval;
       setflags(FLAG_Z,!wval);
-      setflags(FLAG_N,wval&0x80);      
-	  setflags(FLAG_C,y>=bval);
+      setflags(FLAG_N,wval&0x80);
+      setflags(FLAG_C,y>=bval);
       break;
     case dec:
       bval=getaddr(addr);
       bval--;
-      setaddr(addr,bval);	  
+      setaddr(addr,bval);
       setflags(FLAG_Z,!bval);
       setflags(FLAG_N,bval&0x80);
       break;
@@ -763,13 +763,13 @@ int CSIDEmu::cpuParse()
       cycles+=2;
       x--;
       setflags(FLAG_Z,!x);
-      setflags(FLAG_N,x&0x80);	  
+      setflags(FLAG_N,x&0x80);
       break;
     case dey:
       cycles+=2;
       y--;
       setflags(FLAG_Z,!y);
-      setflags(FLAG_N,y&0x80);	  
+      setflags(FLAG_N,y&0x80);
       break;
     case eor:
       bval=getaddr(addr);
@@ -835,8 +835,8 @@ int CSIDEmu::cpuParse()
       setflags(FLAG_Z,!y);
       setflags(FLAG_N,y&0x80);
       break;
-    case lsr:      
-	  bval=getaddr(addr); wval=(byte)bval;
+    case lsr:
+      bval=getaddr(addr); wval=(byte)bval;
       wval>>=1;
       setaddr(addr,(byte)wval);
       setflags(FLAG_Z,!wval);
@@ -891,21 +891,21 @@ int CSIDEmu::cpuParse()
       setflags(FLAG_Z,!bval);
       break;
     case rti:
-		// NEU, rti wie rts
+        // NEU, rti wie rts
     case rts:
       wval=pop();
       wval|=pop()<<8;
       pc=wval+1;
       cycles+=6;
       break;
-    case sbc:      
-	  bval=getaddr(addr)^0xff;
+    case sbc:
+      bval=getaddr(addr)^0xff;
       wval=(word)a+bval+((p&FLAG_C)?1:0);
       setflags(FLAG_C, wval&0x100);
       a=(byte)wval;
       setflags(FLAG_Z, !a);
       setflags(FLAG_N, a>127);
-      setflags(FLAG_V, (!!(p&FLAG_C)) ^ (!!(p&FLAG_N)));	  
+      setflags(FLAG_V, (!!(p&FLAG_C)) ^ (!!(p&FLAG_N)));
       break;
     case sec:
       cycles+=2;
@@ -961,13 +961,13 @@ int CSIDEmu::cpuParse()
       a=y;
       setflags(FLAG_Z, !a);
       setflags(FLAG_N, a&0x80);
-      break;  
+      break;
   }
   return cycles;
 }
 
 int CSIDEmu::cpuJSR(word npc, byte na, byte nx/*=0*/, byte ny/*=0*/)
-{  
+{
   a=na;
   x=nx;
   y=ny;
@@ -976,74 +976,74 @@ int CSIDEmu::cpuJSR(word npc, byte na, byte nx/*=0*/, byte ny/*=0*/)
   pc=npc;
   push(0);
   push(0);
-  int ccl=0;  
+  int ccl=0;
 
   while (pc > 1)
   {
-	  ccl+=cpuParse();
+      ccl+=cpuParse();
   }
- 
+
   return ccl;
 }
 
 void CSIDEmu::c64Init(void)
-{  
-	synth_init(44100);
-	memset(memory, 0, 65535);
-      
-	cpuReset();    
+{
+    synth_init(44100);
+    memset(memory, 0, 65535);
+
+    cpuReset();
 }
 
 word CSIDEmu::LoadSID(char *filename, word *load_addr, word *init_addr, word *play_addr)
-{	
-	word adr, offset=0;
-	word data_file_offset;
-	FILE *f;
-	if ( (f=fopen(filename, "rb"))==NULL) return(0);
-	// Feststellen von wo an das Datenfile beginnt
-	fseek(f, 7, 0);
-	data_file_offset = fgetc(f);
-	// Init Adresse holen
-	fseek(f, 10, 0);
-	*init_addr = fgetc(f)<<8;
-	*init_addr|= fgetc(f);
+{
+    word adr, offset=0;
+    word data_file_offset;
+    FILE *f;
+    if ( (f=fopen(filename, "rb"))==NULL) return(0);
+    // Feststellen von wo an das Datenfile beginnt
+    fseek(f, 7, 0);
+    data_file_offset = fgetc(f);
+    // Init Adresse holen
+    fseek(f, 10, 0);
+    *init_addr = fgetc(f)<<8;
+    *init_addr|= fgetc(f);
 
-	// Play Adresse holen
-	*play_addr = fgetc(f)<<8;
-	*play_addr|= fgetc(f);			
-	
-	// Load Adresse holen
-	fseek(f, 8, 0);
-	adr = fgetc(f)<<8;
-	adr|= fgetc(f);
-		
-	fseek(f, data_file_offset, 0);
-	if (adr == 0) {		
-		adr = fgetc(f);
-		adr|= fgetc(f)<<8;
-	};
+    // Play Adresse holen
+    *play_addr = fgetc(f)<<8;
+    *play_addr|= fgetc(f);
 
-	*load_addr = adr;
-	
-	// Daten einlesen
-	memset(memory, 0, 65535);
-	int songStart = ftell(f);
-	while(!feof(f)) memory[(adr+offset++)%65536]=fgetc(f);	
-	fclose(f);
+    // Load Adresse holen
+    fseek(f, 8, 0);
+    adr = fgetc(f)<<8;
+    adr|= fgetc(f);
 
-	memcpy(memory_backup, memory, sizeof(memory));
-	
-	if (*play_addr == 0)
-	{
-		cpuJSR(*init_addr, 0);
-		*play_addr = (memory[0x0315]<<8)+memory[0x0314];
-	}
+    fseek(f, data_file_offset, 0);
+    if (adr == 0) {
+        adr = fgetc(f);
+        adr|= fgetc(f)<<8;
+    };
 
-	return adr;	
+    *load_addr = adr;
+
+    // Daten einlesen
+    memset(memory, 0, 65535);
+    int songStart = ftell(f);
+    while(!feof(f)) memory[(adr+offset++)%65536]=fgetc(f);
+    fclose(f);
+
+    memcpy(memory_backup, memory, sizeof(memory));
+
+    if (*play_addr == 0)
+    {
+        cpuJSR(*init_addr, 0);
+        *play_addr = (memory[0x0315]<<8)+memory[0x0314];
+    }
+
+    return adr;
 }
 
 CSIDEmu& CSIDEmu::Instance()
 {
-	static CSIDEmu instance;
-	return(instance);
+    static CSIDEmu instance;
+    return(instance);
 }

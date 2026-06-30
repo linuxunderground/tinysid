@@ -31,7 +31,7 @@ static inline int pfloat_ConvertToInt(int i)
     return i>>16;
 }
 
-enum { 
+enum {
   adc, and, asl, bcc, bcs, beq, bit, bmi, bne, bpl, brk, bvc, bvs, clc,
   cld, cli, clv, cmp, cpx, cpy, dec, dex, dey, eor, inc, inx, iny, jmp,
   jsr, lda, ldx, ldy, lsr, nop, ora, pha, php, pla, plp, rol, ror, rti,
@@ -130,7 +130,7 @@ byte memory[65536];  /* The C64 memory */
 
 static int sample_active;
 static int sample_position, sample_start, sample_end, sample_repeat_start;
-static int fracPos = 0;		/* Fractal position of sample */
+static int fracPos = 0;        /* Fractal position of sample */
 static int sample_period;
 static int sample_repeats;
 static int sample_order;
@@ -144,25 +144,25 @@ static inline int GenerateDigi(int sIn)
     if (!sample_active) return(sIn);
 
     if ((sample_position < sample_end) && (sample_position >= sample_start))
-    {							
-		//Interpolation routine
-		//float a = (float)fracPos/(float)mixing_frequency;
-		//float b = 1-a;
-		//sIn += a*sample + b*last_sample;
+    {
+        //Interpolation routine
+        //float a = (float)fracPos/(float)mixing_frequency;
+        //float b = 1-a;
+        //sIn += a*sample + b*last_sample;
 
         sIn += sample;
-		
+
         fracPos += 985248/sample_period;
-		
-        if (fracPos > mixing_frequency) 
+
+        if (fracPos > mixing_frequency)
         {
             fracPos%=mixing_frequency;
 
-            last_sample = sample;			
-						
-			// N�hstes Samples holen
+            last_sample = sample;
+
+            // N�hstes Samples holen
             if (sample_order == 0) {
-                sample_nibble++;						// Nähstes Sample-Nibble
+                sample_nibble++;                        // Nähstes Sample-Nibble
                 if (sample_nibble==2) {
                     sample_nibble = 0;
                     sample_position++;
@@ -174,34 +174,34 @@ static inline int GenerateDigi(int sIn)
                     sample_nibble=1;
                     sample_position++;
                 }
-            }		
+            }
             if (sample_repeats)
             {
                 if  (sample_position > sample_end)
                 {
                     sample_repeats--;
                     sample_position = sample_repeat_start;
-                }						
+                }
                 else sample_active = 0;
             }
-			
+
             sample = memory[sample_position&0xffff];
-            if (sample_nibble==1)	// Hi-Nibble holen?		
+            if (sample_nibble==1)    // Hi-Nibble holen?
                 sample = (sample & 0xf0)>>4;
             else sample = sample & 0x0f;
-						
-			
+
+
             sample -= 7;
-            sample <<= 10;	
+            sample <<= 10;
         }
     }
 
-    /* Clipping */    
+    /* Clipping */
     /*
     if (sIn < -32767) return -32767;
     else if (sIn > 32767) return 32767;
     */
-    
+
 
     return (sIn);
 }
@@ -224,7 +224,7 @@ void synth_init   (dword mixfrq)
   memset(&filter,0,sizeof(filter));
   osc[0].noiseval = 0xffffff;
   osc[1].noiseval = 0xffffff;
-  osc[2].noiseval = 0xffffff;  
+  osc[2].noiseval = 0xffffff;
 }
 
 // render a buffer of n samples with the actual register contents
@@ -252,7 +252,7 @@ void synth_render (word *buffer, dword len)
 
 #ifdef USE_FILTER
   filter.freq  = (4 * sid.ffreqhi + (sid.ffreqlo&0x7)) * filtmul;
-  
+
  if (filter.freq>pfloat_ConvertFromInt(1))
      filter.freq=pfloat_ConvertFromInt(1);
   // the above line isnt correct at all - the problem is that the filter
@@ -265,12 +265,12 @@ void synth_render (word *buffer, dword len)
   filter.v3ena = !get_bit(sid.ftp_vol,7);
   filter.vol   = (sid.ftp_vol & 0xf);
   //filter.rez   = 1.0-0.04*(float)(sid.res_ftv >> 4);
-  filter.rez   = pfloat_ConvertFromFloat(1.2f) - 
+  filter.rez   = pfloat_ConvertFromFloat(1.2f) -
           pfloat_ConvertFromFloat(0.04f)*(sid.res_ftv >> 4);
   /* We precalculate part of the quick float operation, saves time in loop later */
   filter.rez>>=8;
 #endif
-  
+
   // now render the buffer
   for (bp=0;bp<len;bp++) {
     int outo=0;
@@ -336,7 +336,7 @@ void synth_render (word *buffer, dword len)
       // the gate bit and put the EG into attack or release phase if desired
       if (!(osc[v].wave & 0x01)) osc[v].envphase=3;
       else if (osc[v].envphase==3) osc[v].envphase=0;
-      // so now process the volume according to the phase and adsr values	  
+      // so now process the volume according to the phase and adsr values
       switch (osc[v].envphase) {
         case 0 : {                          // Phase 0 : Attack
                    osc[v].envval+=osc[v].attack;
@@ -377,22 +377,22 @@ void synth_render (word *buffer, dword len)
                  }
       }
       // now route the voice output to either the non-filtered or the
-      // filtered channel and dont forget to blank out osc3 if desired	  
+      // filtered channel and dont forget to blank out osc3 if desired
 #ifdef USE_FILTER
       if (v<2 || filter.v3ena)
         if (osc[v].filter)
           //outf+=((float)osc[v].envval*(float)outv-0x8000000)/0x30000000;
-		  outf+=(((int)(outv-0x80))*osc[v].envval)>>22;
-		
+          outf+=(((int)(outv-0x80))*osc[v].envval)>>22;
+
         else
           //outo+=((float)osc[v].envval*(float)outv-0x8000000)/0x30000000;
                   outo+=(((int)(outv-0x80))*osc[v].envval)>>22;
 #endif
 #ifndef USE_FILTER
-        
+
     outf+=((signed short)(outv-0x80)) * (osc[v].envval>>8);
 #endif
-    }		
+    }
     // step 3
     // so, now theres finally time to apply the multi-mode resonant filter
     // to the signal. The easiest thing ist just modelling a real electronic
@@ -404,31 +404,31 @@ void synth_render (word *buffer, dword len)
     // emulator.
     // This filter sounds a lot like the 8580, as the low-quality, dirty
     // sound of the 6581 is uuh too hard to achieve :)
-    
+
 #ifdef USE_FILTER
-	
-    //filter.h = outf - filter.b*filter.rez - filter.l;	  
-	//filter.h = pfloat_ConvertFromInt(outf) - pfloat_Multiply(filter.b, filter.rez) - filter.l;
-	filter.h = pfloat_ConvertFromInt(outf) - (filter.b>>8)*filter.rez - filter.l;
-	//filter.b += filter.freq * filter.h;
-	filter.b += pfloat_Multiply(filter.freq, filter.h);
-	//filter.l += filter.freq * filter.b;
+
+    //filter.h = outf - filter.b*filter.rez - filter.l;
+    //filter.h = pfloat_ConvertFromInt(outf) - pfloat_Multiply(filter.b, filter.rez) - filter.l;
+    filter.h = pfloat_ConvertFromInt(outf) - (filter.b>>8)*filter.rez - filter.l;
+    //filter.b += filter.freq * filter.h;
+    filter.b += pfloat_Multiply(filter.freq, filter.h);
+    //filter.l += filter.freq * filter.b;
         filter.l += pfloat_Multiply(filter.freq, filter.b);
 
     outf = 0;
-	
+
     if (filter.l_ena) outf+=pfloat_ConvertToInt(filter.l);
     if (filter.b_ena) outf+=pfloat_ConvertToInt(filter.b);
     if (filter.h_ena) outf+=pfloat_ConvertToInt(filter.h);
-    
+
     final_sample = (signed short) (filter.vol*(outo+outf));
 #endif
 #ifndef USE_FILTER
-    
+
     final_sample = outf>>10;
 #endif
-    
-	
+
+
     *(buffer+bp)=(signed short) GenerateDigi(final_sample);
   }
 }
@@ -452,41 +452,41 @@ static const int ROMcharEnd=0xDFFF;
 static byte ROMchar[ROMcharEnd-ROMcharStart+1];
 */
 void sidPoke(int reg, unsigned char val)
-{  	
+{
       int voice=0;
 
       if ((reg >= 0) && (reg <= 6)) voice=0;
       if ((reg >= 7) && (reg <=13)) {voice=1; reg-=7;}
       if ((reg >= 14) && (reg <=20)) {voice=2; reg-=14;}
-  
+
       switch (reg) {
         case 0: { // Frequenz niederwertiges byte Stimme 1
-				  sid.v[voice].freq = (sid.v[voice].freq&0xff00)+val;
-				  //printf("Voice%d: %d\n", voice, sid.v[voice].freq);
+                  sid.v[voice].freq = (sid.v[voice].freq&0xff00)+val;
+                  //printf("Voice%d: %d\n", voice, sid.v[voice].freq);
                   break;
                 }
         case 1: { // Frequenz h�erwertiges byte Stimme 1
-			      sid.v[voice].freq = (sid.v[voice].freq&0xff)+(val<<8);
-			      break;
-		}
-		case 2: { // Pulsbreite niederwertiges byte Stimme 1
-				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff00)+val;
-				  break;
-				}
-		case 3: { // Pulsbreite h�erwertiges byte Stimme 1
-				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff)+(val<<8);
-				  break;
-				}
-		case 4: { sid.v[voice].wave = val; break;}
+                  sid.v[voice].freq = (sid.v[voice].freq&0xff)+(val<<8);
+                  break;
+        }
+        case 2: { // Pulsbreite niederwertiges byte Stimme 1
+                  sid.v[voice].pulse = (sid.v[voice].pulse&0xff00)+val;
+                  break;
+                }
+        case 3: { // Pulsbreite h�erwertiges byte Stimme 1
+                  sid.v[voice].pulse = (sid.v[voice].pulse&0xff)+(val<<8);
+                  break;
+                }
+        case 4: { sid.v[voice].wave = val; break;}
 
-		case 5: { sid.v[voice].ad = val; break;}
-		case 6: { sid.v[voice].sr = val; break;}
+        case 5: { sid.v[voice].ad = val; break;}
+        case 6: { sid.v[voice].sr = val; break;}
 
-		case 21: { sid.ffreqlo = val; break; }
-		case 22: { sid.ffreqhi = val; break; }
-		case 23: { sid.res_ftv = val; break; }
-		case 24: { sid.ftp_vol = val; break;}
-	}
+        case 21: { sid.ffreqlo = val; break; }
+        case 22: { sid.ffreqhi = val; break; }
+        case 23: { sid.res_ftv = val; break; }
+        case 24: { sid.ftp_vol = val; break;}
+    }
   return;
 }
 void sidReset(void)
@@ -495,8 +495,8 @@ void sidReset(void)
 
 byte getmem(word addr)
 {
-  
-    
+
+
   if (addr == 0xdd0d) memory[addr]=0;
   return memory[addr];
 }
@@ -506,7 +506,7 @@ internal_add, internal_repeat_times, internal_repeat_start;
 
 void setmem(word addr, byte value)
 {
-  
+
     memory[addr]=value;
 
   //#ifdef TRACE
@@ -516,45 +516,45 @@ void setmem(word addr, byte value)
   if ((addr&0xfc00)==0xd400)
   {
     //addr&=0x1f;
-    sidPoke(addr&0x1f,value);    
+    sidPoke(addr&0x1f,value);
     // Neue SID-Register
     if ((addr > 0xd418) && (addr < 0xd500))
-    {                
+    {
         // Start-Hi
         if (addr == 0xd41f) internal_start = (internal_start&0x00ff) | (value<<8);
-	  // Start-Lo
+      // Start-Lo
         if (addr == 0xd41e) internal_start = (internal_start&0xff00) | (value);
-	  // Repeat-Hi
+      // Repeat-Hi
         if (addr == 0xd47f) internal_repeat_start = (internal_repeat_start&0x00ff) | (value<<8);
-	  // Repeat-Lo
+      // Repeat-Lo
         if (addr == 0xd47e) internal_repeat_start = (internal_repeat_start&0xff00) | (value);
 
-	  // End-Hi
+      // End-Hi
         if (addr == 0xd43e) {
             internal_end = (internal_end&0x00ff) | (value<<8);
         }
-	  // End-Lo
+      // End-Lo
         if (addr == 0xd43d) {
             internal_end = (internal_end&0xff00) | (value);
         }
-	  // Loop-Size 
+      // Loop-Size
         if (addr == 0xd43f) internal_repeat_times = value;
-	  // Period-Hi
+      // Period-Hi
         if (addr == 0xd45e) internal_period = (internal_period&0x00ff) | (value<<8);
-	  // Period-Lo
+      // Period-Lo
         if (addr == 0xd45d) {
             internal_period = (internal_period&0xff00) | (value);
         }
-	  // Sample Order
+      // Sample Order
         if (addr == 0xd47d) internal_order = value;
-	  // Sample Add
-        if (addr == 0xd45f) internal_add = value;	  
-	  // Start-Sampling
+      // Sample Add
+        if (addr == 0xd45f) internal_add = value;
+      // Start-Sampling
         if (addr == 0xd41d)
-        {		  		  		  		  		  		 		  
+        {
             sample_repeats = internal_repeat_times;
             sample_position = internal_start;
-            sample_start = internal_start; 
+            sample_start = internal_start;
             sample_end = internal_end;
             sample_repeat_start = internal_repeat_start;
             sample_period = internal_period;
@@ -562,15 +562,15 @@ void setmem(word addr, byte value)
             switch (value)
             {
                 case 0xfd: sample_active = 0; break;
-                case 0xfe: 
+                case 0xfe:
                 case 0xff: sample_active = 1; break;
-                
+
                 default: return;
-            }            
+            }
 
         }
     }
-  
+
   }
 
 }
@@ -643,7 +643,7 @@ static word pc;
 
 static byte getaddr(int mode)
 {
-  word ad,ad2;  
+  word ad,ad2;
   switch(mode)
   {
     case imp:
@@ -707,7 +707,7 @@ static byte getaddr(int mode)
     case acc:
       cycles+=2;
       return a;
-  }  
+  }
   return 0;
 }
 
@@ -1069,7 +1069,7 @@ int cpuParse()
       break;
     case lsr:
       //bval=wval=getaddr(addr);
-	  bval=getaddr(addr); wval=(byte)bval;
+      bval=getaddr(addr); wval=(byte)bval;
       wval>>=1;
       setaddr(addr,(byte)wval);
       setflags(FLAG_Z,!wval);
@@ -1124,14 +1124,14 @@ int cpuParse()
       setflags(FLAG_Z,!bval);
       break;
     case rti:
-		// NEU, rti wie rts, au�r das alle register wieder vom stack kommen
-      //p=pop();		
-		p=pop();
-		y=pop();
-		x=pop();
-		a=pop();
-		// in_nmi = false;
-		//write_console("NMI EXIT!");
+        // NEU, rti wie rts, au�r das alle register wieder vom stack kommen
+      //p=pop();
+        p=pop();
+        y=pop();
+        x=pop();
+        a=pop();
+        // in_nmi = false;
+        //write_console("NMI EXIT!");
     case rts:
       wval=256*pop();
       wval|=pop();
@@ -1201,7 +1201,7 @@ int cpuParse()
       a=y;
       setflags(FLAG_Z, !a);
       setflags(FLAG_N, a&0x80);
-      break;  
+      break;
   }
 
   return cycles;
@@ -1210,7 +1210,7 @@ int cpuParse()
 int cpuJSR(word npc, byte na)
 {
   int ccl;
-  
+
   a=na;
   x=0;
   y=0;
@@ -1219,11 +1219,11 @@ int cpuJSR(word npc, byte na)
   pc=npc;
   push(0);
   push(0);
-  ccl=0;    
+  ccl=0;
   while (pc)
   {
     ccl+=cpuParse();
-  }  
+  }
   return ccl;
 }
 
@@ -1233,12 +1233,12 @@ int cpuJSR(word npc, byte na)
 void c64Init(void)
 {
   int i;
-  
+
   synth_init(44100);
 
   for(i=0; i<65536; i++)
     memory[i]=0;
-  cpuReset();  
+  cpuReset();
 }
 
 unsigned short LoadSIDFromMemory(void *pSidData, unsigned short *load_addr,
@@ -1264,12 +1264,12 @@ unsigned short LoadSIDFromMemory(void *pSidData, unsigned short *load_addr,
 
     *load_addr = pData[data_file_offset];
     *load_addr|= pData[data_file_offset+1]<<8;
-        
+
     *speed = pData[0x15];
-    
+
     memset(memory, 0, sizeof(memory));
     memcpy(&memory[*load_addr], &pData[data_file_offset+2], size-(data_file_offset+2));
-    
+
     if (*play_addr == 0)
     {
         cpuJSR(*init_addr, 0);
@@ -1283,61 +1283,61 @@ word c64SidLoad(char *filename, word *init_addr, word *play_addr, byte *sub_song
 {
     /*
         word adr, offset=0, i;
-	word data_file_offset;
-	FILE *f;
-	
-	if ( (f=fopen(filename, "rb")) == NULL) return(0);
-	// Feststellen von wo an das Datenfile beginnt
-	fseek(f, 7, 0);
-	data_file_offset = fgetc(f);
-	
-	// Init Adresse holen
-	fseek(f, 10, 0);
-	*init_addr = fgetc(f)<<8;
-	*init_addr|= fgetc(f);
+    word data_file_offset;
+    FILE *f;
 
-	// Play Adresse holen
-	*play_addr = fgetc(f)<<8;
-	*play_addr|= fgetc(f);
+    if ( (f=fopen(filename, "rb")) == NULL) return(0);
+    // Feststellen von wo an das Datenfile beginnt
+    fseek(f, 7, 0);
+    data_file_offset = fgetc(f);
 
-	// Anzahl Subsongs holen
-	fseek(f, 0x0f,0);
-	*max_sub_songs = fgetc(f)-1;
+    // Init Adresse holen
+    fseek(f, 10, 0);
+    *init_addr = fgetc(f)<<8;
+    *init_addr|= fgetc(f);
 
-	// Start song holen
-	fseek(f, 0x11,0);
-	*sub_song_start = fgetc(f)-1;
+    // Play Adresse holen
+    *play_addr = fgetc(f)<<8;
+    *play_addr|= fgetc(f);
 
-	// Song Speed holen (0=50Hz, 1=Double Speed)
-	fseek(f, 0x15, 0);
-	*speed = fgetc(f);
+    // Anzahl Subsongs holen
+    fseek(f, 0x0f,0);
+    *max_sub_songs = fgetc(f)-1;
 
-	// Name holen
-	fseek(f, 0x16, 0);
-	for (i=0;i<32;i++) name[i] = fgetc(f);
-	
-	// Author holen
-	fseek(f, 0x36, 0);
-	for (i=0;i<32;i++) author[i] = fgetc(f);
-	
-	// Copyright holen
-	fseek(f, 0x56, 0);
-	for (i=0;i<32;i++) copyright[i] = fgetc(f);
-	
-	// Load Adresse holen
-	fseek(f, data_file_offset, 0);
-	adr = fgetc(f);
-	adr|= fgetc(f)<<8;
+    // Start song holen
+    fseek(f, 0x11,0);
+    *sub_song_start = fgetc(f)-1;
 
-	// Daten einlesen
-	while(!feof(f)) memory[(adr+offset++)%65536]=fgetc(f);
-	fclose(f);
-	//return adr;	
+    // Song Speed holen (0=50Hz, 1=Double Speed)
+    fseek(f, 0x15, 0);
+    *speed = fgetc(f);
+
+    // Name holen
+    fseek(f, 0x16, 0);
+    for (i=0;i<32;i++) name[i] = fgetc(f);
+
+    // Author holen
+    fseek(f, 0x36, 0);
+    for (i=0;i<32;i++) author[i] = fgetc(f);
+
+    // Copyright holen
+    fseek(f, 0x56, 0);
+    for (i=0;i<32;i++) copyright[i] = fgetc(f);
+
+    // Load Adresse holen
+    fseek(f, data_file_offset, 0);
+    adr = fgetc(f);
+    adr|= fgetc(f)<<8;
+
+    // Daten einlesen
+    while(!feof(f)) memory[(adr+offset++)%65536]=fgetc(f);
+    fclose(f);
+    //return adr;
  */
      FILE *f;
-	int i;
-    	if ( (f=fopen(filename, "rb")) == NULL) return(0);
-	// Name holen
+    int i;
+        if ( (f=fopen(filename, "rb")) == NULL) return(0);
+    // Name holen
         fseek(f, 0x16, 0);
         for (i=0;i<32;i++) name[i] = fgetc(f);
 
@@ -1348,21 +1348,21 @@ word c64SidLoad(char *filename, word *init_addr, word *play_addr, byte *sub_song
         // Copyright holen
         fseek(f, 0x56, 0);
         for (i=0;i<32;i++) copyright[i] = fgetc(f);
-	fclose(f);
-	
+    fclose(f);
+
 
     unsigned char sidmem[65536];
     unsigned char *p = sidmem;
     unsigned short load_addr;
-	
+
     if ( (f=fopen(filename, "rb")) == NULL) return(0);
     while (!feof(f)) *p++ = fgetc(f);
     fclose(f);
-    
+
     LoadSIDFromMemory(sidmem, &load_addr,
                       init_addr, play_addr, max_sub_songs, sub_song_start, speed, p-sidmem);
     name = NULL; author = NULL; copyright = NULL;
-    
-        
+
+
     return load_addr;
 }
