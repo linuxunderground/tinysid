@@ -20,10 +20,7 @@
 #endif // _MSC_VER > 1000
 
 #include "Pseudofloat.h"
-
-typedef unsigned char  byte;
-typedef unsigned short word;
-typedef unsigned long  dword;
+#include "defines.h"
 
 class CSIDEmu
 {

@@ -1,6 +1,7 @@
 #ifndef SYS_TYPES
 #define SYS_TYPES
-typedef unsigned char  byte;
-typedef unsigned short word;
-typedef unsigned long  dword;
+#include <stdint.h>
+typedef uint8_t  byte;
+typedef uint16_t word;
+typedef uint32_t dword;
 #endif
