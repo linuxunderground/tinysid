@@ -138,7 +138,6 @@ static int sample_nibble;
 
 static inline int GenerateDigi(int sIn)
 {
-    static int last_sample = 0;
     static int sample = 0;
 
     if (!sample_active) return(sIn);
@@ -158,9 +157,7 @@ static inline int GenerateDigi(int sIn)
         {
             fracPos%=mixing_frequency;
 
-            last_sample = sample;
-
-            // N�hstes Samples holen
+            // Nähstes Samples holen
             if (sample_order == 0) {
                 sample_nibble++;                        // Nähstes Sample-Nibble
                 if (sample_nibble==2) {
