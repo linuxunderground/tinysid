@@ -14,19 +14,19 @@
 #define FLAG_Z 2
 #define FLAG_C 1
 
-static inline int pfloat_ConvertFromInt(int i)
+static inline int32_t pfloat_ConvertFromInt(int32_t i)
 {
-    return i<<16;
+    return (int32_t)((uint32_t)i << 16);
 }
-static inline int pfloat_ConvertFromFloat(float f)
+static inline int32_t pfloat_ConvertFromFloat(float f)
 {
-    return (int)(f*(1<<16));
+    return (int32_t)(f*(1<<16));
 }
-static inline int pfloat_Multiply(int a, int b)
+static inline int32_t pfloat_Multiply(int32_t a, int32_t b)
 {
     return (a>>8)*(b>>8);
 }
-static inline int pfloat_ConvertToInt(int i)
+static inline int32_t pfloat_ConvertToInt(int32_t i)
 {
     return i>>16;
 }
