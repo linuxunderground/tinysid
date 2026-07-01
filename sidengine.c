@@ -380,13 +380,18 @@ void synth_render (word *buffer, dword len)
       // filtered channel and dont forget to blank out osc3 if desired
 #ifdef USE_FILTER
       if (v<2 || filter.v3ena)
+      {
         if (osc[v].filter)
+        {
           //outf+=((float)osc[v].envval*(float)outv-0x8000000)/0x30000000;
           outf+=(((int)(outv-0x80))*osc[v].envval)>>22;
-
+        }
         else
+        {
           //outo+=((float)osc[v].envval*(float)outv-0x8000000)/0x30000000;
-                  outo+=(((int)(outv-0x80))*osc[v].envval)>>22;
+          outo+=(((int)(outv-0x80))*osc[v].envval)>>22;
+        }
+      }
 #endif
 #ifndef USE_FILTER
 
